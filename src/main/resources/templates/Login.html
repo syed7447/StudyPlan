@@ -1,0 +1,109 @@
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    /* Global styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+
+    input {
+      margin: 10px 0;
+      padding: 12px;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 20px;
+        width: 80%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username" required /><br />
+    <input type="password" id="password" placeholder="Password" required /><br />
+    <button onclick="login()">Login</button>
+    <div id="error-message" class="error-message"></div>
+  </div>
+
+  <script>
+    const credentials = { username: "rohit", password: "pass" };
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorMessage = document.getElementById("error-message");
+
+      if (username === credentials.username && password === credentials.password) {
+        window.location.href = "dashboard.html";
+      } else {
+        errorMessage.textContent = "Invalid username or password.";
+      }
+    }
+  </script>
+</body>
+</html>
+

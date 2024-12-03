@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar</title>
+  <script src="calendar.js"></script>
+  <style>
+    /* Global styles */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f7fa;
+      color: #333;
+    }
+    nav {
+      background-color: #4CAF50;
+      padding: 10px;
+      color: white;
+      font-size: 18px;
+    }
+    nav a {
+      margin-right: 20px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    /* Calendar grid */
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .date-cell {
+      border: 1px solid #ddd;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      background-color: #f1f1f1;
+      font-size: 18px;
+      border-radius: 8px;
+      transition: background-color 0.3s, transform 0.3s ease;
+      position: relative;
+    }
+
+    .date-cell:hover {
+      background-color: #ffeb3b;
+      transform: scale(1.1);
+    }
+
+    .date-cell:nth-child(odd) {
+      background-color: #e0f7fa;
+    }
+
+    .date-cell:nth-child(even) {
+      background-color: #fff3e0;
+    }
+
+    /* Popup Styles */
+    .popup {
+      position: fixed;
+      display: none;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 350px;
+      background-color: #ffffff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 20px;
+      z-index: 1000;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .popup h3 {
+      margin-top: 0;
+      font-size: 1.5em;
+      color: #333;
+      text-align: center;
+    }
+
+    .popup input {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    .popup input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .popup button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      margin: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .popup button:first-of-type {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .popup button:first-of-type:hover {
+      background-color: #218838;
+    }
+
+    .popup button:last-of-type {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .popup button:last-of-type:hover {
+      background-color: #c82333;
+    }
+
+    /* Background overlay for popup */
+    .popup::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
+
+    /* Responsive styling */
+    @media (max-width: 400px) {
+      .popup {
+        width: 90%;
+        padding: 15px;
+      }
+
+      .popup input {
+        font-size: 0.9em;
+      }
+
+      .popup button {
+        font-size: 0.9em;
+      }
+    }
+
+    /* Month and Year Styles */
+    #month-year {
+      text-align: center;
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="calendar.html">Plan</a>
+    <a href="study-dashboard.html">Study</a>
+    <a href="login.html">Logout</a>
+  </nav>
+
+  <h1>Calendar</h1>
+
+  <!-- Month and Year Header -->
+  <div id="month-year"></div>
+
+  <div id="calendar"></div>
+
+  <!-- Popup for adding a task -->
+  <div id="popup" class="popup">
+    <h3>Add Task</h3>
+    <input type="text" id="description" placeholder="Description"><br>
+    <input type="text" id="subject" placeholder="Subject"><br>
+    <input type="date" id="date"><br>
+    <input type="date" id="due-date"><br>
+    <input type="color" id="color"><br>
+    <input type="number" id="hours" placeholder="Hours"><br>
+    <button onclick="addTask()">Add Task</button>
+    <button onclick="closePopup()">Close</button>
+  </div>
+
+  <script>
+    // Object to hold task data by date
+    const tasks = {};
+
+    // Function to render the calendar
+    function renderCalendar() {
+      const calendar = document.getElementById("calendar");
+      const monthYear = document.getElementById("month-year");
+
+      // Get the current date, month, and year
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();  // Get the current month (0-11)
+      const currentYear = currentDate.getFullYear();  // Get the current year (YYYY)
+      
+      // Array of months for display
+      const months = [
+        "January", "February", "March", "April", "May", "June", "July", "August", 
+        "September", "October", "November", "December"
+      ];
+      
+      // Set the month and year display
+      monthYear.textContent = `${months[currentMonth]} ${currentYear}`;
+
+      // Create the calendar grid
+      calendar.innerHTML = ''; // Clear any previous content
+
+      // First, render the days of the week (Sun, Mon, Tue, etc.)
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      daysOfWeek.forEach(day => {
+        const dayCell = document.createElement("div");
+        dayCell.className = "date-cell";
+        dayCell.textContent = day;
+        dayCell.style.fontWeight = 'bold';
+        calendar.appendChild(dayCell);
+      });
+
+      // Get the number of days in the current month
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      // Get the first day of the month (0 = Sunday, 6 = Saturday)
+      const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+
+      // Add empty cells for the days before the first day of the month
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        const emptyCell = document.createElement("div");
+        calendar.appendChild(emptyCell);
+      }
+
+      // Render the days of the month
+      for (let i = 1; i <= daysInMonth; i++) {
+        const cell = document.createElement("div");
+        cell.className = "date-cell";
+        cell.textContent = i;
+
+        // If there is a task for this date, show the description
+        if (tasks[i]) {
+          const taskDescription = document.createElement("div");
+          taskDescription.textContent = tasks[i].description;
+          taskDescription.style.fontSize = '12px';
+          taskDescription.style.color = tasks[i].color;
+          cell.appendChild(taskDescription);
+        }
+
+        cell.onclick = () => openPopup(i);
+        calendar.appendChild(cell);
+      }
+    }
+
+    // Function to open the popup
+    function openPopup(date) {
+      const popup = document.getElementById("popup");
+      document.getElementById("date").value = `2024-11-${date}`;
+      popup.style.display = "block";
+    }
+
+    // Function to close the popup
+    function closePopup() {
+      const popup = document.getElementById("popup");
+      popup.style.display = "none";
+    }
+
+   
+// Function to add a task
+function addTask() {
+    const description = document.getElementById("description").value;
+    const subject = document.getElementById("subject").value;
+    const date = document.getElementById("date").value;
+    const dueDate = document.getElementById("due-date").value;
+    const color = document.getElementById("color").value;
+    const hours = document.getElementById("hours").value;
+
+    const taskData = {
+        description: description,
+        subject: subject,
+        taskDate: date,
+        dueDate: dueDate,
+        color: color,
+        hours: hours
+    };
+
+    fetch('http://localhost:8080/tasks/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+             "Access-Control-Allow-Origin": "*" , 
+          
+        },
+        body: JSON.stringify(taskData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Task added:', data);
+        closePopup();
+        renderCalendar(); // Re-render the calendar to show the new task
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+    // Initialize the calendar
+    renderCalendar();
+  </script>
+</body>
+</html>
